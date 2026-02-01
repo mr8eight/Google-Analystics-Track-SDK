@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "moduleResolution": "node",
+    "strict": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": false,             // 允许生成输出文件
+    "declaration": true,         // 【重要】生成 .d.ts 类型文件
+    "declarationDir": "./dist",  // 类型文件输出目录
+    "outDir": "./dist",          // JS 文件输出目录
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
