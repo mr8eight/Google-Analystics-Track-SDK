@@ -214,9 +214,9 @@ export class SmartTracker {
         }
       });
 
-      // 停止离线队列
+      // 销毁离线队列
       if (this.offlineQueue) {
-        this.offlineQueue.stopRetryTimer();
+        this.offlineQueue.destroy();
       }
 
       this.isDestroyed = true;

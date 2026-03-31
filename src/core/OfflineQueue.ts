@@ -26,7 +26,7 @@
  */
 
 import type { OfflineQueueConfig, QueuedEvent, EventParams } from '../types';
-import { safeExecute, safeGetStorage, safeSetStorage, isLocalStorageAvailable, generateId } from './utils';
+import { safeExecute, safeExecuteAsync, safeGetStorage, safeSetStorage, isLocalStorageAvailable, generateId } from './utils';
 
 /** localStorage 存储键名 */
 const STORAGE_KEY = '__tracker_queue__';
@@ -46,6 +46,15 @@ export class OfflineQueue {
   private config: OfflineQueueConfig & typeof DEFAULT_CONFIG;
   private flushTimer: ReturnType<typeof setInterval> | null = null;
   private isFlushing: boolean = false;
+
+  /**
+   * 绑定的网络恢复事件处理器
+   * 使用箭头函数绑定 this，便于移除监听器
+   * @internal
+   */
+  private handleOnline = (): void => {
+    this.flush();
+  };
 
   /**
    * @param config - 队列配置
@@ -123,7 +132,7 @@ export class OfflineQueue {
 
     this.isFlushing = true;
 
-    const result = await safeExecute(async () => {
+    const result = await safeExecuteAsync(async () => {
       let successCount = 0;
       const failedEvents: QueuedEvent[] = [];
 
@@ -218,9 +227,20 @@ export class OfflineQueue {
    */
   private bindNetworkEvents(): void {
     safeExecute(() => {
-      window.addEventListener('online', () => {
-        this.flush();
-      });
+      window.addEventListener('online', this.handleOnline);
     }, undefined, 'OfflineQueue.bindNetworkEvents');
+  }
+
+  /**
+   * 销毁队列实例
+   *
+   * 清理定时器和事件监听器，防止内存泄漏。
+   * 销毁后不应再使用该实例。
+   */
+  destroy(): void {
+    this.stopRetryTimer();
+    safeExecute(() => {
+      window.removeEventListener('online', this.handleOnline);
+    }, undefined, 'OfflineQueue.destroy');
   }
 }
