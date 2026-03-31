@@ -54,6 +54,14 @@ export interface UserTraits {
 
 /**
  * 事件参数
+ *
+ * 索引签名类型说明：
+ * - string: 字符串类型参数（如 label、category）
+ * - number: 数值类型参数（如 value、duration）
+ * - boolean: 布尔类型参数（如 non_interaction）
+ * - undefined: 可选参数未定义时的类型
+ * - null: 显式设置为 null 的参数
+ * - object: 嵌套对象参数（如 item_list、items 数组等）
  */
 export interface EventParams {
   /** 事件类别 */
@@ -69,7 +77,7 @@ export interface EventParams {
   non_interaction?: boolean;
 
   /** 其他自定义参数 */
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined | null | object;
 }
 
 // 保留原有类型别名，向后兼容
@@ -220,6 +228,14 @@ export interface QueuedEvent {
 // Window 扩展类型
 // ============================================
 
+/**
+ * Window 接口扩展
+ *
+ * 注意：dataLayer 和 gtag 使用 any 类型是因为这些是第三方库（Google Analytics / Google Tag Manager）
+ * 提供的接口，其类型定义由 Google 官方维护。我们无法完全控制其类型，因此使用 any 来确保兼容性。
+ *
+ * 参考：https://developers.google.com/analytics/devguides/collection/ga4
+ */
 declare global {
   interface Window {
     /** Google Tag Manager 数据层 */
