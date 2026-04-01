@@ -44,12 +44,10 @@ interface WebVitals {
   cls: number | null;
 }
 
-/** 资源性能数据 */
-interface ResourceData {
-  name: string;
-  type: string;
-  duration: number;
-  size: number;
+/** Layout Shift Entry 接口 */
+interface LayoutShiftEntry extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
 }
 
 /**
@@ -238,8 +236,9 @@ export class PerformanceCollector {
         let clsValue = 0;
         const clsObserver = new PerformanceObserver((list) => {
           list.getEntries().forEach(entry => {
-            if (!entry.hadRecentInput && 'value' in entry) {
-              clsValue += (entry as any).value;
+            const lsEntry = entry as LayoutShiftEntry;
+            if (!lsEntry.hadRecentInput && 'value' in entry) {
+              clsValue += lsEntry.value;
             }
           });
           this.reportWebVital('cls', Math.round(clsValue * 1000) / 1000);
