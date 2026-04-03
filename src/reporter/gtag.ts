@@ -145,22 +145,10 @@ export function sendToGtag(
       return;
     }
 
-    // 转换参数格式
-    const {
-      category,
-      label,
-      value,
-      non_interaction = true,
-      ...rest
-    } = params;
-
-    const payload: Record<string, any> = {
-      event_category: category,
-      event_label: label,
-      value: value,
-      non_interaction: non_interaction,
-      ...rest
-    };
+    // 构建事件参数
+    // GA4 事件参数直接透传，不做命名转换
+    // 参考：https://developers.google.com/analytics/devguides/collection/ga4/events
+    const payload: Record<string, any> = { ...params };
 
     // 移除 undefined 值
     Object.keys(payload).forEach(key => {
@@ -210,7 +198,7 @@ export function sendPageView(
     window.gtag('event', 'page_view', {
       page_path: path,
       page_title: title || document.title,
-      page_location: window.location.origin + path
+      page_location: window.location.href  // 使用完整 URL
     });
 
     if (config?.debug) {
@@ -281,7 +269,7 @@ export function clearUserProperties(config?: TrackerConfig): void {
 
     if (config?.measurementId) {
       window.gtag('config', config.measurementId, {
-        user_id: undefined
+        user_id: null
       });
     }
 
