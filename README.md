@@ -1,4 +1,4 @@
-# @my-org/tracker
+# @mr8eight/ga-tracker
 
 企业级前端埋点监控 SDK。基于 Google Analytics 4 (gtag) 封装，提供性能监控、错误捕获及用户行为追踪功能。支持 Monorepo 架构与 TypeScript。
 
@@ -18,14 +18,14 @@
 
 ```bash
 # pnpm
-pnpm add @my-org/tracker --filter web-app
+pnpm add @mr8eight/ga-tracker --filter web-app
 ```
 
 或者在 `package.json` 中添加：
 
 ```json
 "dependencies": {
-  "@my-org/tracker": "workspace:*"
+  "@mr8eight/ga-tracker": "workspace:*"
 }
 ```
 
@@ -36,7 +36,7 @@ pnpm add @my-org/tracker --filter web-app
 建议在项目的入口文件（如 `src/main.tsx` 或 `src/App.tsx`）进行初始化。**配置仅需执行一次**。
 
 ```typescript
-import { SmartTracker } from '@my-org/tracker';
+import { SmartTracker } from '@mr8eight/ga-tracker';
 
 SmartTracker.getInstance({
   // 必填：GA4 Measurement ID
@@ -60,7 +60,7 @@ SmartTracker.getInstance({
 用于追踪按钮、链接等明确的点击行为。
 
 ```tsx
-import { SmartTracker } from '@my-org/tracker';
+import { SmartTracker } from '@mr8eight/ga-tracker';
 
 const Button = () => {
   const handleClick = () => {
