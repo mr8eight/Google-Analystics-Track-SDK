@@ -139,7 +139,7 @@ export function safeGetStorage(key: string): string | null {
 
   return safeExecute(() => {
     return localStorage.getItem(key);
-  }, null, 'safeGetStorage');
+  }, null, 'safeGetStorage') ?? null;
 }
 
 /**
@@ -156,7 +156,7 @@ export function safeSetStorage(key: string, value: string): boolean {
   return safeExecute(() => {
     localStorage.setItem(key, value);
     return true;
-  }, false, 'safeSetStorage');
+  }, false, 'safeSetStorage') ?? false;
 }
 
 /**

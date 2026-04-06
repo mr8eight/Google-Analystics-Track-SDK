@@ -31,7 +31,11 @@ import type { TrackerConfig, EventParams, UserTraits, ReportFunction } from '../
 import { setGlobalConfig, safeExecute, isBrowser } from './utils';
 import { UserTracker } from './UserTracker';
 import { OfflineQueue } from './OfflineQueue';
-import { injectGtagScript, sendToGtag, sendPageView, setUserProperties, clearUserProperties } from '../reporter/gtag';
+import { ErrorCollector } from '../collectors/ErrorCollector';
+import { InteractionCollector } from '../collectors/InteractionCollector';
+import { NetworkCollector } from '../collectors/NetworkCollector';
+import { PerformanceCollector } from '../collectors/PerformanceCollector';
+import { injectGtagScript, sendToGtag, sendPageView, setUserProperties, clearUserProperties, removeGtagScript } from '../reporter/gtag';
 
 /** 默认配置 */
 const DEFAULT_CONFIG: Partial<TrackerConfig> = {
@@ -52,10 +56,10 @@ export class SmartTracker {
   private userTracker: UserTracker;
   private offlineQueue: OfflineQueue | null = null;
   private collectors: {
-    performance?: { stop: () => void };
-    error?: { stop: () => void };
-    network?: { stop: () => void };
-    interaction?: { stop: () => void };
+    performance?: { start: () => void; stop: () => void };
+    error?: { start: () => void; stop: () => void };
+    network?: { start: () => void; stop: () => void };
+    interaction?: { start: () => void; stop: () => void };
   } = {};
   private isInitialized: boolean = false;
   private isDestroyed: boolean = false;
@@ -163,7 +167,7 @@ export class SmartTracker {
       };
 
       // 检查是否需要离线缓存
-      if (!navigator.onLine && this.offlineQueue) {
+      if (isBrowser() && !navigator.onLine && this.offlineQueue) {
         this.offlineQueue.enqueue(name, mergedParams);
         return;
       }
@@ -217,8 +221,10 @@ export class SmartTracker {
       // 销毁离线队列
       if (this.offlineQueue) {
         this.offlineQueue.destroy();
+        this.offlineQueue = null;
       }
 
+      removeGtagScript(this.config.measurementId);
       this.isDestroyed = true;
       this.isInitialized = false;
       SmartTracker.instance = null;
@@ -268,8 +274,7 @@ export class SmartTracker {
         this.offlineQueue.startRetryTimer();
       }
 
-      // 注意：采集器将在 Task 7-10 中实现
-      // 目前只初始化基础功能
+      this.initializeCollectors();
 
       this.isInitialized = true;
 
@@ -277,5 +282,39 @@ export class SmartTracker {
         console.log('[Tracker] Initialized successfully');
       }
     }, undefined, 'SmartTracker.init');
+  }
+
+  /**
+   * 按配置初始化采集器
+   * @internal
+   */
+  private initializeCollectors(): void {
+    if (this.config.enablePerformance) {
+      this.collectors.performance = new PerformanceCollector(this.report, {
+        debug: this.config.debug
+      });
+      this.collectors.performance.start();
+    }
+
+    if (this.config.enableError) {
+      this.collectors.error = new ErrorCollector(this.report, {
+        debug: this.config.debug
+      });
+      this.collectors.error.start();
+    }
+
+    if (this.config.enableNetwork) {
+      this.collectors.network = new NetworkCollector(this.report, {
+        debug: this.config.debug
+      });
+      this.collectors.network.start();
+    }
+
+    if (this.config.enableInteraction) {
+      this.collectors.interaction = new InteractionCollector(this.report, {
+        debug: this.config.debug
+      });
+      this.collectors.interaction.start();
+    }
   }
 }
